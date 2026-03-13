@@ -83,4 +83,8 @@ export const API_ENDPOINTS = {
 
   // Sleep sessions endpoint
   userSleepSessions: (userId: string) => `/api/v1/users/${userId}/events/sleep`,
+
+  // Garmin Connect credential auth
+  garminConnectLogin: '/api/v1/garmin-connect/auth/login',
+  garminConnectMFA: '/api/v1/garmin-connect/auth/mfa',
 } as const;

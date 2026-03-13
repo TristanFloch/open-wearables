@@ -196,6 +196,7 @@ export interface Provider {
 export type WearableProvider =
   | 'fitbit'
   | 'garmin'
+  | 'garmin_connect'
   | 'oura'
   | 'whoop'
   | 'strava'
@@ -588,6 +589,14 @@ export interface SyncResponse {
   success: boolean;
   async: boolean;
   task_id: string;
+  message: string;
+}
+
+// Garmin Connect credential auth types
+export interface GarminConnectLoginResponse {
+  success: boolean;
+  requires_mfa: boolean;
+  session_id?: string;
   message: string;
 }
 

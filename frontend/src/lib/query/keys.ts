@@ -99,6 +99,10 @@ export const queryKeys = {
       [...queryKeys.garmin.all, 'backfill', userId] as const,
   },
 
+  garminConnect: {
+    all: ['garminConnect'] as const,
+  },
+
   requestLogs: {
     all: ['requestLogs'] as const,
     lists: () => [...queryKeys.requestLogs.all, 'list'] as const,

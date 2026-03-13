@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { useOAuthConnect } from '@/hooks/use-oauth-connect';
 import { useOAuthProviders } from '@/hooks/api/use-oauth-providers';
 import { useUserConnections } from '@/hooks/api/use-health';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { API_CONFIG } from '@/lib/api/config';
+import { GarminConnectDialog } from '@/components/user/garmin-connect-dialog';
 
 export const Route = createFileRoute('/users/$userId/pair/')({
   component: PairWearablePage,
@@ -32,7 +33,9 @@ function PairWearablePage() {
   const { connectionState, connectingProvider, error, connect, reset } =
     useOAuthConnect({ userId, redirectUrl });
 
-  const { data: apiProviders, isLoading } = useOAuthProviders(true, true);
+  const [garminConnectOpen, setGarminConnectOpen] = useState(false);
+
+  const { data: apiProviders, isLoading } = useOAuthProviders(false, true);
   const { data: connections } = useUserConnections(userId);
 
   const connectedProviders = useMemo(() => {
@@ -45,15 +48,26 @@ function PairWearablePage() {
   const displayProviders = useMemo(() => {
     if (!apiProviders) return [];
     return apiProviders.map((apiProvider) => {
+      // Mutual exclusion: garmin <-> garmin_connect
+      const isMutuallyExcluded =
+        (apiProvider.provider === 'garmin_connect' &&
+          connectedProviders.has('garmin')) ||
+        (apiProvider.provider === 'garmin' &&
+          connectedProviders.has('garmin_connect'));
+
       return {
         id: apiProvider.provider,
         name: apiProvider.name,
-        description: 'Connect your device',
+        description: isMutuallyExcluded
+          ? 'Disconnect the other Garmin integration first'
+          : 'Connect your device',
         logoPath: apiProvider.icon_url
           ? `${API_CONFIG.baseUrl}${apiProvider.icon_url}`
           : '',
         isAvailable: apiProvider.is_enabled,
         isConnected: connectedProviders.has(apiProvider.provider),
+        hasCloudApi: apiProvider.has_cloud_api,
+        isMutuallyExcluded,
       };
     });
   }, [apiProviders, connectedProviders]);
@@ -63,6 +77,15 @@ function PairWearablePage() {
     : null;
 
   const handleConnect = (providerId: string) => {
+    const provider = displayProviders.find((p) => p.id === providerId);
+    if (!provider || provider.isMutuallyExcluded) return;
+
+    if (!provider.hasCloudApi) {
+      // Credential-based auth (e.g., Garmin Connect)
+      setGarminConnectOpen(true);
+      return;
+    }
+
     if (connectingProvider === null) {
       connect(providerId);
     }
@@ -133,11 +156,15 @@ function PairWearablePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05, duration: 0.3 }}
                     onClick={() => handleConnect(provider.id)}
-                    disabled={provider.isConnected}
+                    disabled={
+                      provider.isConnected || provider.isMutuallyExcluded
+                    }
                     className={`group relative flex flex-col items-center text-center p-10 rounded-2xl bg-zinc-900/40 border transition-all duration-300 ease-out outline-none focus:ring-2 focus:ring-white/20 ${
                       provider.isConnected
                         ? 'border-emerald-500/20 cursor-default'
-                        : 'border-white/5 hover:bg-zinc-900/80 hover:border-white/10'
+                        : provider.isMutuallyExcluded
+                          ? 'border-white/5 opacity-50 cursor-not-allowed'
+                          : 'border-white/5 hover:bg-zinc-900/80 hover:border-white/10'
                     }`}
                   >
                     {/* Brand Logo */}
@@ -245,6 +272,13 @@ function PairWearablePage() {
         <Lock className="w-4 h-4 stroke-[1.5]" />
         <span>Your data is encrypted and secure</span>
       </motion.div>
+
+      {/* Garmin Connect credential auth dialog */}
+      <GarminConnectDialog
+        open={garminConnectOpen}
+        onOpenChange={setGarminConnectOpen}
+        userId={userId}
+      />
     </div>
   );
 }
