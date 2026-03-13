@@ -76,6 +76,7 @@ class SeriesType(str, Enum):
     physical_effort = "physical_effort"
     flights_climbed = "flights_climbed"
     average_met = "average_met"
+    sedentary_time = "sedentary_time"
 
     # =========================================================================
     # ACTIVITY - Distance (IDs 100-119)
@@ -218,6 +219,7 @@ SERIES_TYPE_DEFINITIONS: list[tuple[int, SeriesType, str]] = [
     (85, SeriesType.physical_effort, "score"),
     (86, SeriesType.flights_climbed, "count"),
     (87, SeriesType.average_met, "met"),
+    (88, SeriesType.sedentary_time, "minutes"),
     # -------------------------------------------------------------------------
     # ACTIVITY - Distance (IDs 100-119)
     # -------------------------------------------------------------------------

@@ -556,9 +556,16 @@ class SummariesService:
             if active_cal is not None or basal_cal is not None:
                 total_cal = (active_cal or 0.0) + (basal_cal or 0.0)
 
-            # Get active/sedentary minutes
-            active_mins = activity_data.get("active_minutes")
-            sedentary_mins = activity_data.get("sedentary_minutes")
+            # Get active/sedentary minutes — prefer exercise_time from time-series
+            # (provider-reported), fall back to step-bucketing derivation
+            exercise_time_from_ts = result.get("exercise_time_sum")
+            sedentary_time_from_ts = result.get("sedentary_time_sum")
+            if exercise_time_from_ts is not None:
+                active_mins = exercise_time_from_ts
+                sedentary_mins = sedentary_time_from_ts
+            else:
+                active_mins = activity_data.get("active_minutes")
+                sedentary_mins = activity_data.get("sedentary_minutes")
 
             # Get intensity minutes from HR data
             intensity_mins = None

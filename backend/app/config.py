@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     garmin_redirect_uri: str = "http://localhost:8000/api/v1/oauth/garmin/callback"
     garmin_default_scope: str = ""  # Scope is managed at app creation in Garmin Developer Portal
 
+    # GARMIN CONNECT (GARTH) SETTINGS
+    garmin_connect_backfill_days: int = 90  # Days of history to fetch on initial connect
+
     # POLAR OAUTH SETTINGS
     polar_client_id: str | None = None
     polar_client_secret: SecretStr | None = None

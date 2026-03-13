@@ -5,6 +5,15 @@ from pydantic import BaseModel, Field
 
 from app.schemas.enums import ProviderName
 
+DEFAULT_PROVIDER_PRIORITY: dict[ProviderName, int] = {
+    ProviderName.APPLE: 1,
+    ProviderName.GARMIN: 2,
+    ProviderName.GARMIN_CONNECT: 2,
+    ProviderName.POLAR: 3,
+    ProviderName.SUUNTO: 4,
+    ProviderName.WHOOP: 5,
+}
+
 
 class ProviderPriorityBase(BaseModel):
     provider: ProviderName

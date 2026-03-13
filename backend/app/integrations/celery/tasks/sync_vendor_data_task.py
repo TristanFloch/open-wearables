@@ -289,6 +289,13 @@ def _build_sync_params(provider_name: str, start_date: str | None, end_date: str
         if end_date:
             params["summary_end_time"] = end_date
 
+    elif provider_name == "garmin_connect":
+        # Garmin Connect via Garth: uses standard start/end dates
+        if start_date:
+            params["start_date"] = start_date
+        if end_date:
+            params["end_date"] = end_date
+
     elif provider_name == "whoop":
         # Whoop API uses 'start' and 'end' parameters (ISO 8601 strings)
         if start_date:

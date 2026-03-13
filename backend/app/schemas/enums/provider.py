@@ -12,6 +12,7 @@ class ProviderName(str, Enum):
     SUUNTO = "suunto"
     WHOOP = "whoop"
     STRAVA = "strava"
+    GARMIN_CONNECT = "garmin_connect"
     OURA = "oura"
     FITBIT = "fitbit"
     ULTRAHUMAN = "ultrahuman"

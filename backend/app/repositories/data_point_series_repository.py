@@ -470,7 +470,7 @@ class DataPointSeriesRepository(
         - activity_date, source, device_model
         - steps_sum, active_energy_sum, basal_energy_sum
         - hr_avg, hr_max, hr_min
-        - distance_sum, flights_climbed_sum
+        - distance_sum, flights_climbed_sum, exercise_time_sum
         """
         # Series type IDs we need
         steps_id = get_series_type_id(SeriesType.steps)
@@ -479,6 +479,8 @@ class DataPointSeriesRepository(
         hr_id = get_series_type_id(SeriesType.heart_rate)
         distance_id = get_series_type_id(SeriesType.distance_walking_running)
         flights_id = get_series_type_id(SeriesType.flights_climbed)
+        exercise_time_id = get_series_type_id(SeriesType.exercise_time)
+        sedentary_time_id = get_series_type_id(SeriesType.sedentary_time)
 
         # Build aggregation query
         results = (
@@ -516,6 +518,14 @@ class DataPointSeriesRepository(
                 func.sum(case((self.model.series_type_definition_id == flights_id, self.model.value))).label(
                     "flights_climbed_sum"
                 ),
+                # Exercise time - sum for the day (no else_=0 to return NULL when no data)
+                func.sum(case((self.model.series_type_definition_id == exercise_time_id, self.model.value))).label(
+                    "exercise_time_sum"
+                ),
+                # Sedentary time - sum for the day (no else_=0 to return NULL when no data)
+                func.sum(case((self.model.series_type_definition_id == sedentary_time_id, self.model.value))).label(
+                    "sedentary_time_sum"
+                ),
             )
             .join(DataSource, self.model.data_source_id == DataSource.id)
             .filter(
@@ -523,7 +533,7 @@ class DataPointSeriesRepository(
                 self.model.recorded_at >= start_date,
                 cast(self.model.recorded_at, Date) < cast(end_date, Date),
                 self.model.series_type_definition_id.in_(
-                    [steps_id, energy_id, basal_energy_id, hr_id, distance_id, flights_id]
+                    [steps_id, energy_id, basal_energy_id, hr_id, distance_id, flights_id, exercise_time_id, sedentary_time_id]
                 ),
             )
             .group_by(
@@ -552,6 +562,12 @@ class DataPointSeriesRepository(
                     "distance_sum": float(row.distance_sum) if row.distance_sum is not None else None,
                     "flights_climbed_sum": int(row.flights_climbed_sum)
                     if row.flights_climbed_sum is not None
+                    else None,
+                    "exercise_time_sum": int(row.exercise_time_sum)
+                    if row.exercise_time_sum is not None
+                    else None,
+                    "sedentary_time_sum": int(row.sedentary_time_sum)
+                    if row.sedentary_time_sum is not None
                     else None,
                 }
             )
